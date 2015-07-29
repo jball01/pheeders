@@ -1,0 +1,7 @@
+name = Pheeders Theme
+description = Basic Pheeders Theme
+core = 7.x
+
+stylesheets[all][] = css/style.css
+
+scripts[] = js/script.js

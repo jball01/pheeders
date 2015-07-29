@@ -1,0 +1,14 @@
+.page-node-7 .page-header {
+  color: blue;
+}
+#test {
+  color: red;
+  margin-top: 0px;
+}
+#welcome-intro {
+  background-color: #004000;
+  width: 200px;
+  height: 100px;
+  text-align: center;
+  vertical-align: middle;
+}

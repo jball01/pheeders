@@ -1,0 +1,4 @@
+#!/bin/bash
+
+lessc sites/all/themes/pheeders_bootstrap/less/style.less sites/all/themes/pheeders_bootstrap/css/style.css
+

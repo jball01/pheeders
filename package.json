@@ -1,0 +1,24 @@
+{
+  "name": "pheeders",
+  "version": "1.0.0",
+  "description": "npm",
+  "main": "index.js",
+  "dependencies": {
+    "grunt": "^0.4.5"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-less": "^1.0.1",
+    "grunt-contrib-watch": "^0.6.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jake Ball",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/jball01/pheeders.git"
+  },
+  "homepage": "https://bitbucket.org/jball01/pheeders#readme"
+}

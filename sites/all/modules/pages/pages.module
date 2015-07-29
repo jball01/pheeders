@@ -1,0 +1,243 @@
+<?php
+
+/***********************************************************************
+************************* DRUPAL HOOKS *********************************
+***********************************************************************/
+/*
+ * Implements hook_theme().
+ */
+function pages_theme() {
+    $theme = array();
+
+    $theme['welcome_template'] = array(
+        'template' => 'templates/welcome-page',
+    );
+
+    $theme['stats_template'] = array(
+        'template' => 'templates/stats-page',
+    );
+
+    $theme['maintenence_template'] = array(
+        'template' => 'templates/maintenence-page',
+    );
+
+    $theme['player_airsnipe_template'] = array(
+        'template' => 'templates/player-airsnipe-page',
+    );
+
+    return $theme;
+}
+
+/*
+ * Implements hook_menu().
+ */
+function pages_menu() {
+    global $user;
+
+    $items = array();
+
+    $items['welcome'] = array(
+        'title' => 'Welcome Screen',
+        'description' => 'hook menu implementation for welcome screen',
+        'page callback' => 'welcome_go_to',
+        'access callback' => TRUE,
+    );
+
+    $items['stats'] = array(
+        'title' => 'Stats Page',
+        'description' => 'hook menu implementation for stats page',
+        'page callback' => 'stats_go_to',
+        'access callback' => TRUE,
+    );
+
+    $items['maintenence'] = array(
+        'title' => 'Maintenence Page',
+        'page callback' => 'maintenence_go_to',
+        'access arguments' => array('access maintenence content'),
+        'type' => MENU_NORMAL_ITEM,
+     );
+
+    $items['player/airsnipe'] = array(
+        'title' => 'airsnipe',
+        'access callback' => TRUE,
+        'page callback' => 'player_go_to',
+    );
+
+    return $items;
+}
+
+/*
+ * Implements hook_block_info().
+ */
+function pages_block_info() {
+    $blocks = array();
+
+    $blocks['refresh-riot-data'] = array(
+        'info' => t('Refresh Riot Data'),
+    );
+
+    return $blocks;
+}
+
+/*
+ * Implements hook_block_view().
+ */
+function pages_block_view($delta = '') {
+    $block = array();
+    switch ($delta) {
+        case 'refresh-riot-data':
+            $block['subject'] = t('Run Riot API (may take a while)');
+            $block['content'] = drupal_get_form('riot_refresh_data_form');
+            break;
+    }
+
+    return $block;
+}
+
+/*
+ * hook_form for Refresh Riot Data Block
+ */
+function riot_refresh_data_form($form, &$form_state){
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Refresh'),
+    );
+
+    return $form;
+}
+
+/*
+ * hook_form_submit for Refresh Riot Data Block
+ */
+function riot_refresh_data_form_submit($form, &$form_state) {
+    $team_id = 'TEAM-ff87c990-a937-11e1-88e3-782bcb4d1861';
+    $player_list = getRoster($team_id,'na');
+    $player_info = getInfo($player_list);
+    $player_names = getNames($player_info,$player_list);
+
+    drupal_set_message('Data Refreshed');
+}
+
+/***********************************************************************
+************************* PAGE PREPROCESSES ****************************
+***********************************************************************/
+
+/*
+ * Welcome Page Preprocess
+ */
+function template_preprocess_welcome_template(&$vars) {
+    // global $champions;
+    // include 'includes/champions.php';
+    
+    $vars['player_names']= json_decode(file_get_contents('sites/all/modules/pages/includes/names.json'),true);
+
+    $vars['player_roles'] = array(
+        'airsnipe'        => array('primary' => 'Mid',      'secondary' => 'Support'),
+        'The Floinator'   => array('primary' => 'ADC',      'secondary' => 'Jungle'),
+        'H2O JoX'         => array('primary' => 'Top',      'secondary' => 'Support'),
+        '007Yoda'         => array('primary' => 'Support',  'secondary' => 'Mid'),
+        'penguin202'      => array('primary' => 'Top',      'secondary' => 'ADC'),
+        'shark14'         => array('primary' => 'ADC',      'secondary' => 'Support'),
+        'shocker27'       => array('primary' => 'Jungle',   'secondary' => 'Support'),
+        'Cidestep'        => array('primary' => 'Support',  'secondary' => 'Mid'),
+        'Killer Potatoez' => array('primary' => 'Jungle',   'secondary' => 'Support'),
+    );
+
+
+}
+
+/*
+ *  Maintenence Page Preprocess
+ */
+function template_preprocess_maintenence_template(&$vars) {
+    $vars['player_names']= json_decode(file_get_contents('sites/all/modules/pages/includes/names.json'),true);
+    $vars['player_ids']= json_decode(file_get_contents('sites/all/modules/pages/includes/player_ids.json'),true);
+    $vars['player_info']= json_decode(file_get_contents('sites/all/modules/pages/includes/player_info.json'),true);
+}
+
+function template_preprocess_player_airsnipe_template(&$vars) {
+    $vars['banner'] = "http://2.bp.blogspot.com/-kOookACh2kU/UHf_V2_5PuI/AAAAAAAAIcI/oV9Zk3UKBNw/s1600/synny.jpg";
+}
+
+/***********************************************************************
+************************* CALLBACK FUNCTIONS ***************************
+***********************************************************************/
+
+/*
+ * Welcome Screen Callback Function
+ */
+function welcome_go_to() {
+    return theme('welcome_template');
+}
+
+/*
+ * Stats Page Callback Function
+ */ 
+function stats_go_to() {
+    return theme('stats_template');
+}
+
+/*
+ * Maintenence Page Callback Function
+ */
+function maintenence_go_to() {
+    return theme('maintenence_template');
+}
+
+function player_go_to() {
+    return theme('player_airsnipe_template');
+}
+
+/***********************************************************************
+************************* RIOT FUNCTIONS *******************************
+***********************************************************************/
+
+function getSummoner($summoner, $server) {
+    $sum = file_get_contents("https://na.api.pvp.net/api/lol/$server/v1.4/summoner/$summoner?api_key=81fc5710-6519-4be4-af89-e4e3c1b8dfa7");
+    $sum = json_decode($sum, true);
+    return $sum;
+}
+
+function getRoster($team, $server) {
+    $roster = file_get_contents("https://na.api.pvp.net/api/lol/na/v2.4/team/$team?api_key=81fc5710-6519-4be4-af89-e4e3c1b8dfa7");
+    $roster = json_decode($roster,true);
+    $players = array();
+    $count = 0;
+
+    foreach($roster['TEAM-ff87c990-a937-11e1-88e3-782bcb4d1861']['roster']['memberList'] as $player) {
+        $players[] = $player['playerId'];
+    }     
+
+    file_put_contents('sites/all/modules/pages/includes/player_ids.json',json_encode($players));
+
+    return $players;
+}
+
+function getNames($player_info,$ids){
+    $count = 0; 
+    foreach($player_info as $player_info_a){
+        $player_names[] = $player_info_a[$ids[$count]]['name'];
+        $count++;
+    }
+    
+    file_put_contents('sites/all/modules/pages/includes/names.json',json_encode($player_names));
+
+    return $player_names;
+}
+
+function getInfo($player_list){
+    $count = 0;
+    foreach($player_list as $player_list_a){
+        $player_info[] = getSummoner($player_list_a,'na');
+        $count++;
+        sleep(0.3);
+    }
+
+    file_put_contents('sites/all/modules/pages/includes/player_info.json',json_encode($player_info));
+
+    return $player_info;
+}
+
+/***********************************************************************
+************************* OTHER FUNCTIONS ******************************
+***********************************************************************/
